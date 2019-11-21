@@ -1,0 +1,49 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "ltl quiz",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "Fallback",
+                    "slots": [
+                        {
+                            "name": "anything",
+                            "type": "anything"
+                        }
+                    ],
+                    "samples": [
+                        "{anything}"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "anything",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "whatever"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
