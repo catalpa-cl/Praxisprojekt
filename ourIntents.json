@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "ltl quiz",
+            "invocationName": "ltl quiz unser",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -36,6 +36,11 @@
                 {
                     "name": "anything",
                     "values": [
+                        {
+                            "name": {
+                                "value": "two words"
+                            }
+                        },
                         {
                             "name": {
                                 "value": "whatever"
