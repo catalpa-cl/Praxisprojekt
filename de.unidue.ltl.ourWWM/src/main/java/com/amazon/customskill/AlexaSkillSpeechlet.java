@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,9 +41,9 @@ public class AlexaSkillSpeechlet
 implements SpeechletV2
 {
 	static Logger logger = LoggerFactory.getLogger(AlexaSkillSpeechlet.class);
-	
+
 	public static String userRequest;
-	
+
 	private static int sum;
 	private static String answerOption1 = "";
 	private static String answerOption2 = "";
@@ -52,7 +54,7 @@ implements SpeechletV2
 	private static enum RecognitionState {Answer, YesNo};
 	private RecognitionState recState;
 	private static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty};
-	private UserIntent ourUserIntent;
+	UserIntent ourUserIntent;
 
 	static String welcomeMsg = "Hallo, willkommen bei Wer Wird Millionär.";
 	static String wrongMsg = "Das ist leider falsch.";
@@ -71,14 +73,14 @@ implements SpeechletV2
 	static String errorYesNoMsg = "Das habe ich nicht verstanden. Sagen Sie bitte ja oder nein.";
 	static String errorAnswerMsg = "Das habe ich nicht verstanden. Sagen Sie bitte a, b, c, d, Publikum oder 50:50.";
 
-	
+
 	private String buildString(String msg, String replacement1, String replacement2) {
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
 	}
-	
-	
 
-	
+
+
+
 
 	@Override
 	public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope)
@@ -211,7 +213,7 @@ implements SpeechletV2
 				sum=16000;
 			}
 		}
-		
+
 	}
 
 	private void increaseSum() {
@@ -234,17 +236,41 @@ implements SpeechletV2
 		}
 	}
 
-	//TODO
-	private void recognizeUserIntent(String userRequest) {
-		switch (userRequest.toLowerCase()) {
-		case "publikum": ourUserIntent = UserIntent.Publikum; break;
-		case "fiftyfifty": ourUserIntent = UserIntent.FiftyFifty; break;
-		case "a": ourUserIntent = UserIntent.A; break;
-		case "b": ourUserIntent = UserIntent.B; break;
-		case "c": ourUserIntent = UserIntent.C; break;
-		case "d": ourUserIntent = UserIntent.D; break;
-		case "ja": ourUserIntent = UserIntent.Yes; break;
-		case "nein": ourUserIntent = UserIntent.No; break;
+	
+	 void recognizeUserIntent(String userRequest) {
+		userRequest = userRequest.toLowerCase();
+		String pattern1 = "(ich nehme )?(antwort )?(\\b[a-d]\\b)( bitte)?";
+		String pattern2 = "(ich nehme )?(den )?publikumsjoker( bitte)?";
+		String pattern3 = "(ich nehme )?(den )?(fiftyfifty|fünfzigfünfzig) joker( bitte)?";
+		String pattern4 = "\bnein\b";
+		String pattern5 = "\bja\b";
+		
+		Pattern p1 = Pattern.compile(pattern1);
+		Matcher m1 = p1.matcher(userRequest);
+		Pattern p2 = Pattern.compile(pattern2);
+		Matcher m2 = p2.matcher(userRequest);
+		Pattern p3 = Pattern.compile(pattern3);
+		Matcher m3 = p3.matcher(userRequest);
+		Pattern p4 = Pattern.compile(pattern4);
+		Matcher m4 = p4.matcher(userRequest);
+		Pattern p5 = Pattern.compile(pattern5);
+		Matcher m5 = p5.matcher(userRequest);
+		if (m1.find()) {
+			String answer = m1.group(3);
+			switch (answer) {
+			case "a": ourUserIntent = UserIntent.A; break;
+			case "b": ourUserIntent = UserIntent.B; break;
+			case "c": ourUserIntent = UserIntent.C; break;
+			case "d": ourUserIntent = UserIntent.D; break;
+			}
+		} else if (m2.find()) {
+			ourUserIntent = UserIntent.Publikum;
+		} else if (m3.find()) {
+			ourUserIntent = UserIntent.FiftyFifty;
+		} else if (m4.find()) {
+			ourUserIntent = UserIntent.No;
+		} else if (m5.find()) {
+			ourUserIntent = UserIntent.Yes;
 		}
 		logger.info("set ourUserIntent to " +ourUserIntent);
 	}
