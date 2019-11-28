@@ -53,10 +53,10 @@ implements SpeechletV2
 	private static String correctAnswer = "";
 	private static enum RecognitionState {Answer, YesNo};
 	private RecognitionState recState;
-	private static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty};
+	private static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
 	UserIntent ourUserIntent;
 
-	static String welcomeMsg = "Hallo, willkommen bei Wer Wird Millionär.";
+	static String welcomeMsg = "Hallo, herzlich willkommen bei Wer Wird Millionär.";
 	static String wrongMsg = "Das ist leider falsch.";
 	static String correctMsg = "Das ist richtig";
 	static String continueMsg = "Möchten Sie weiterspielen?";
@@ -242,8 +242,8 @@ implements SpeechletV2
 		String pattern1 = "(ich nehme )?(antwort )?(\\b[a-d]\\b)( bitte)?";
 		String pattern2 = "(ich nehme )?(den )?publikumsjoker( bitte)?";
 		String pattern3 = "(ich nehme )?(den )?(fiftyfifty|fünfzigfünfzig) joker( bitte)?";
-		String pattern4 = "\bnein\b";
-		String pattern5 = "\bja\b";
+		String pattern4 = "\\bnein\\b";
+		String pattern5 = "\\bja\\b";
 		
 		Pattern p1 = Pattern.compile(pattern1);
 		Matcher m1 = p1.matcher(userRequest);
@@ -271,6 +271,8 @@ implements SpeechletV2
 			ourUserIntent = UserIntent.No;
 		} else if (m5.find()) {
 			ourUserIntent = UserIntent.Yes;
+		} else {
+			ourUserIntent = UserIntent.Error;
 		}
 		logger.info("set ourUserIntent to " +ourUserIntent);
 	}
