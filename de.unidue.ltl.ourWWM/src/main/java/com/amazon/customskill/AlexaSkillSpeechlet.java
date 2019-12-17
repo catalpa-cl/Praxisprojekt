@@ -33,6 +33,9 @@ import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SsmlOutputSpeech;
 
+import nlp.dkpro.backend.LinguisticPreprocessor;
+import nlp.dkpro.backend.NlpSingleton;
+
 
 /*
  * This class is the actual skill. Here you receive the input and have to produce the speech output. 
@@ -78,8 +81,7 @@ implements SpeechletV2
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
 	}
 
-
-
+	private LinguisticPreprocessor preprocessing;
 
 
 	@Override
@@ -90,6 +92,7 @@ implements SpeechletV2
 		fiftyfiftyUsed = false;
 		sum = 0;
 		recState = RecognitionState.Answer;
+		preprocessing = NlpSingleton.getInstance();
 	}
 
 	@Override
@@ -236,15 +239,15 @@ implements SpeechletV2
 		}
 	}
 
-	
-	 void recognizeUserIntent(String userRequest) {
+
+	void recognizeUserIntent(String userRequest) {
 		userRequest = userRequest.toLowerCase();
 		String pattern1 = "(ich nehme )?(antwort )?(\\b[a-d]\\b)( bitte)?";
 		String pattern2 = "(ich nehme )?(den )?publikumsjoker( bitte)?";
 		String pattern3 = "(ich nehme )?(den )?(fiftyfifty|fünfzigfünfzig) joker( bitte)?";
 		String pattern4 = "\\bnein\\b";
 		String pattern5 = "\\bja\\b";
-		
+
 		Pattern p1 = Pattern.compile(pattern1);
 		Matcher m1 = p1.matcher(userRequest);
 		Pattern p2 = Pattern.compile(pattern2);
