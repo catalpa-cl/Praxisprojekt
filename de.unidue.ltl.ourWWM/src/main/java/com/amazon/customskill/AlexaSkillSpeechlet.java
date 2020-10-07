@@ -76,7 +76,7 @@ implements SpeechletV2
 	private Map<String, String> readSystemUtterances() {
 		Map<String, String> utterances = new HashMap<String, String>(); 
 		try {
-			for (String line :Files.readAllLines(Paths.get("/src/main/resources/utterances.txt"))){
+			for (String line :Files.readAllLines(Paths.get("src/main/resources/utterances.txt"))){
 				if (line.startsWith("#")){
 					continue;	
 				}
@@ -87,6 +87,7 @@ implements SpeechletV2
 			}
 			logger.info("Read "  +utterances.keySet().size() + "utterances");
 		} catch (IOException e) {
+			logger.info("Could not read utterances: "+e.getMessage());
 			System.err.println("Could not read utterances: "+e.getMessage());
 		}
 		return utterances;
