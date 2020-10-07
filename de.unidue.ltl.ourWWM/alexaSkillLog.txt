@@ -1,0 +1,2 @@
+INFO    2020-10-07 12:29:43,745 com.amazon.customskill.AlexaSkillSpeechlet  - set ourUserIntent to Error
+INFO    2020-10-07 12:29:48,273 com.amazon.customskill.AlexaSkillSpeechlet  - set ourUserIntent to A
