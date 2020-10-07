@@ -9,6 +9,9 @@
  */
 package com.amazon.customskill;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,16 +50,16 @@ implements SpeechletV2
 
 	public static String userRequest;
 
-	private static int sum;
-	private static String answerOption1 = "";
-	private static String answerOption2 = "";
-	private static boolean publikumUsed;
-	private static boolean fiftyfiftyUsed;
-	private static String question = "";
-	private static String correctAnswer = "";
-	private static enum RecognitionState {Answer, YesNo};
-	private RecognitionState recState;
-	private static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
+	static int sum;
+	static String answerOption1 = "";
+	static String answerOption2 = "";
+	static boolean publikumUsed;
+	static boolean fiftyfiftyUsed;
+	static String question = "";
+	static String correctAnswer = "";
+	static enum RecognitionState {Answer, YesNo};
+	RecognitionState recState;
+	static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
 	UserIntent ourUserIntent;
 
 	static String welcomeMsg = "Hallo, herzlich willkommen bei Wer Wird Millionär.";
@@ -82,7 +85,8 @@ implements SpeechletV2
 	}
 
 	private LinguisticPreprocessor preprocessing;
-
+	static String DBName = "AlexaBeispiel.db";
+	private static Connection con = null;
 
 	@Override
 	public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope)
@@ -102,25 +106,39 @@ implements SpeechletV2
 		return askUserResponse(welcomeMsg+" "+question);
 	}
 
+//	private void selectQuestion() {
+//		switch(sum){
+//		case 0: question = "Frage?"; correctAnswer = "a"; break;
+//		case 50: question = "Frage?"; correctAnswer = "a"; break;
+//		case 100: question = "Frage?"; correctAnswer = "a"; break;
+//		case 200: question = "Frage?"; correctAnswer = "a"; break;
+//		case 300: question = "Frage?"; correctAnswer = "a"; break;
+//		case 500: question = "Frage?"; correctAnswer = "a"; break;
+//		case 1000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 2000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 4000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 8000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 16000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 32000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 64000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 125000: question = "Frage?"; correctAnswer = "a"; break;
+//		case 500000: question = "Frage?"; correctAnswer = "a"; break;
+//		}
+//	}
+	
 	private void selectQuestion() {
-		switch(sum){
-		case 0: question = "Frage?"; correctAnswer = "a"; break;
-		case 50: question = "Frage?"; correctAnswer = "a"; break;
-		case 100: question = "Frage?"; correctAnswer = "a"; break;
-		case 200: question = "Frage?"; correctAnswer = "a"; break;
-		case 300: question = "Frage?"; correctAnswer = "a"; break;
-		case 500: question = "Frage?"; correctAnswer = "a"; break;
-		case 1000: question = "Frage?"; correctAnswer = "a"; break;
-		case 2000: question = "Frage?"; correctAnswer = "a"; break;
-		case 4000: question = "Frage?"; correctAnswer = "a"; break;
-		case 8000: question = "Frage?"; correctAnswer = "a"; break;
-		case 16000: question = "Frage?"; correctAnswer = "a"; break;
-		case 32000: question = "Frage?"; correctAnswer = "a"; break;
-		case 64000: question = "Frage?"; correctAnswer = "a"; break;
-		case 125000: question = "Frage?"; correctAnswer = "a"; break;
-		case 500000: question = "Frage?"; correctAnswer = "a"; break;
+		try {
+			con = DBConnection.getConnection();
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt
+					.executeQuery("SELECT * FROM Fragen WHERE Gewinnsumme=" + sum + "");
+			question = rs.getString("Frage");
+			correctAnswer = rs.getString("RichtigeAntwort");
+		} catch (Exception e){
+			e.printStackTrace();
 		}
 	}
+
 
 	@Override
 	public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope)
@@ -280,15 +298,38 @@ implements SpeechletV2
 		logger.info("set ourUserIntent to " +ourUserIntent);
 	}
 
-	//TODO
-	private void useFiftyFiftyJoker() {
+
+	void useFiftyFiftyJoker() {
 		answerOption1 = correctAnswer;
-		answerOption2 = correctAnswer;
+		do { int r = (int) Math.round(Math.random()*4.0);
+		switch(r){
+		case 1: answerOption2="a"; break;
+		case 2: answerOption2="b"; break;
+		case 3: answerOption2="c"; break;		
+		default:answerOption2="d";
+		}
+		} while(answerOption2==answerOption1);
+		if (correctAnswer=="d" || answerOption2 == "a"
+				|| (answerOption1 == "c" && answerOption2!="d")) {
+			String temp = answerOption1;
+			answerOption1 = answerOption2;
+			answerOption2 = temp;
+		}
 	}
 
-	//TODO
-	private void usePublikumJoker() {
-		answerOption1 = correctAnswer;
+	void usePublikumJoker() {
+		int r = (int) Math.round(Math.random()*20.0);
+		if (r < 1.0) {
+			answerOption1 = "a";
+		} else if (r < 2.0) {
+			answerOption1 = "b";
+		} else if (r < 3.0) {
+			answerOption1 = "c";
+		} else if (r < 4.0) {
+			answerOption1 = "d";
+		} else {
+			answerOption1 = correctAnswer;
+		}
 	}
 
 	/**
