@@ -70,24 +70,6 @@ implements SpeechletV2
 	UserIntent ourUserIntent;
 
 	Map<String, String> utterances = readSystemUtterances();
-	
-//	static String welcomeMsg = "Hallo, herzlich willkommen bei Wer Wird Millionär.";
-//	static String wrongMsg = "Das ist leider falsch.";
-//	static String correctMsg = "Das ist richtig";
-//	static String continueMsg = "Möchten Sie weiterspielen?";
-//	static String congratsMsg = "Herzlichen Glückwunsch! Sie haben eine Million Euro gewonnen.";
-//	static String goodbyeMsg = "Bella Ciao!";
-//	static String sumMsg = "Sie haben {replacement} Euro gewonnen";
-//	static String fiftyfiftyUsedMsg = "Sie haben den 50 50 Joker leider schon verbraucht. Wie ist Ihre Antwort?";
-//	static String fiftyfiftyAnswerMsg = "Ok, sie nehmen also den 50 50 Joker. "
-//			+ "Es bleiben noch die Antworten {replacement} und {replacement2} übrig";
-//
-//	static String publikumUsedMsg = "Sie haben den Publikumsjoker leider schon verbraucht. Wie ist Ihre Antwort?";
-//	static String publikumAnswerMsg = "Ok, sie nehmen also den Publikumsjoker. "
-//			+ "Das Publikum ist mehrmeitlich für Antwort {replacement}.";
-//	static String errorYesNoMsg = "Das habe ich nicht verstanden. Sagen Sie bitte ja oder nein.";
-//	static String errorAnswerMsg = "Das habe ich nicht verstanden. Sagen Sie bitte a, b, c, d, Publikum oder 50:50.";
-
 
 	private String buildString(String msg, String replacement1, String replacement2) {
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
