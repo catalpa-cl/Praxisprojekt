@@ -9,8 +9,5 @@
 		<servlet-name>AlexaServlet</servlet-name>
 		<url-pattern>/myrequest</url-pattern>
 	</servlet-mapping>
-	<listener>
-		<listener-class>nlp.dkpro.backend.BackendStarter</listener-class>
-	</listener>
 
 </web-app>
