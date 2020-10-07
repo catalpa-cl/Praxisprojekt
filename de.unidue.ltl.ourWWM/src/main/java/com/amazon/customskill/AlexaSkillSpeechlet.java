@@ -69,7 +69,7 @@ implements SpeechletV2
 	static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
 	UserIntent ourUserIntent;
 
-	Map<String, String> utterances = readSystemUtterances();
+	Map<String, String> utterances;
 
 	private String buildString(String msg, String replacement1, String replacement2) {
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
@@ -100,6 +100,7 @@ implements SpeechletV2
 	@Override
 	public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope)
 	{
+		utterances = readSystemUtterances();
 		logger.info("Alexa session begins");
 		publikumUsed = false;
 		fiftyfiftyUsed = false;
