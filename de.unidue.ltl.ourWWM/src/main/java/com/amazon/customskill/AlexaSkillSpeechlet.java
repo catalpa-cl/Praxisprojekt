@@ -85,6 +85,7 @@ implements SpeechletV2
 				String utterance = parts[1].trim();
 				utterances.put(key, utterance);
 			}
+			logger.info("Read "  +utterances.keySet().size() + "utterances");
 		} catch (IOException e) {
 			System.err.println("Could not read utterances: "+e.getMessage());
 		}
@@ -109,6 +110,7 @@ implements SpeechletV2
 	@Override
 	public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope)
 	{
+		logger.info("onLaunch");
 		selectQuestion();
 		return askUserResponse(utterances.get("welcomeMsg")+" "+question);
 	}
@@ -121,6 +123,7 @@ implements SpeechletV2
 					.executeQuery("SELECT * FROM Fragen WHERE Gewinnsumme=" + sum + "");
 			question = rs.getString("Frage");
 			correctAnswer = rs.getString("RichtigeAntwort");
+			logger.info("Extracted question from database "+ question);
 		} catch (Exception e){
 			e.printStackTrace();
 		}
