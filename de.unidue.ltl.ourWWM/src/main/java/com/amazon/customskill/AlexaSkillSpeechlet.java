@@ -43,8 +43,6 @@ import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SsmlOutputSpeech;
 
-import nlp.dkpro.backend.LinguisticPreprocessor;
-import nlp.dkpro.backend.NlpSingleton;
 
 
 /*
@@ -93,7 +91,6 @@ implements SpeechletV2
 		return utterances;
 	}
 
-	private LinguisticPreprocessor preprocessing;
 	static String DBName = "AlexaBeispiel.db";
 	private static Connection con = null;
 
@@ -106,7 +103,7 @@ implements SpeechletV2
 		fiftyfiftyUsed = false;
 		sum = 0;
 		recState = RecognitionState.Answer;
-		preprocessing = NlpSingleton.getInstance();
+
 	}
 
 	@Override
