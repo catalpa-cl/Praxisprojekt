@@ -9,9 +9,19 @@
  */
 package com.amazon.customskill;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,42 +55,62 @@ implements SpeechletV2
 
 	public static String userRequest;
 
-	private static int sum;
-	private static String answerOption1 = "";
-	private static String answerOption2 = "";
-	private static boolean publikumUsed;
-	private static boolean fiftyfiftyUsed;
-	private static String question = "";
-	private static String correctAnswer = "";
-	private static enum RecognitionState {Answer, YesNo};
-	private RecognitionState recState;
-	private static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
+	static int sum;
+	static String answerOption1 = "";
+	static String answerOption2 = "";
+	static boolean publikumUsed;
+	static boolean fiftyfiftyUsed;
+	static String question = "";
+	static String correctAnswer = "";
+	static enum RecognitionState {Answer, YesNo};
+	RecognitionState recState;
+	static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
 	UserIntent ourUserIntent;
 
-	static String welcomeMsg = "Hallo, herzlich willkommen bei Wer Wird Millionär.";
-	static String wrongMsg = "Das ist leider falsch.";
-	static String correctMsg = "Das ist richtig";
-	static String continueMsg = "Möchten Sie weiterspielen?";
-	static String congratsMsg = "Herzlichen Glückwunsch! Sie haben eine Million Euro gewonnen.";
-	static String goodbyeMsg = "Bella Ciao!";
-	static String sumMsg = "Sie haben {replacement} Euro gewonnen";
-	static String fiftyfiftyUsedMsg = "Sie haben den 50 50 Joker leider schon verbraucht. Wie ist Ihre Antwort?";
-	static String fiftyfiftyAnswerMsg = "Ok, sie nehmen also den 50 50 Joker. "
-			+ "Es bleiben noch die Antworten {replacement} und {replacement2} übrig";
-
-	static String publikumUsedMsg = "Sie haben den Publikumsjoker leider schon verbraucht. Wie ist Ihre Antwort?";
-	static String publikumAnswerMsg = "Ok, sie nehmen also den Publikumsjoker. "
-			+ "Das Publikum ist mehrmeitlich für Antwort {replacement}.";
-	static String errorYesNoMsg = "Das habe ich nicht verstanden. Sagen Sie bitte ja oder nein.";
-	static String errorAnswerMsg = "Das habe ich nicht verstanden. Sagen Sie bitte a, b, c, d, Publikum oder 50:50.";
+	Map<String, String> utterances = readSystemUtterances();
+	
+//	static String welcomeMsg = "Hallo, herzlich willkommen bei Wer Wird Millionär.";
+//	static String wrongMsg = "Das ist leider falsch.";
+//	static String correctMsg = "Das ist richtig";
+//	static String continueMsg = "Möchten Sie weiterspielen?";
+//	static String congratsMsg = "Herzlichen Glückwunsch! Sie haben eine Million Euro gewonnen.";
+//	static String goodbyeMsg = "Bella Ciao!";
+//	static String sumMsg = "Sie haben {replacement} Euro gewonnen";
+//	static String fiftyfiftyUsedMsg = "Sie haben den 50 50 Joker leider schon verbraucht. Wie ist Ihre Antwort?";
+//	static String fiftyfiftyAnswerMsg = "Ok, sie nehmen also den 50 50 Joker. "
+//			+ "Es bleiben noch die Antworten {replacement} und {replacement2} übrig";
+//
+//	static String publikumUsedMsg = "Sie haben den Publikumsjoker leider schon verbraucht. Wie ist Ihre Antwort?";
+//	static String publikumAnswerMsg = "Ok, sie nehmen also den Publikumsjoker. "
+//			+ "Das Publikum ist mehrmeitlich für Antwort {replacement}.";
+//	static String errorYesNoMsg = "Das habe ich nicht verstanden. Sagen Sie bitte ja oder nein.";
+//	static String errorAnswerMsg = "Das habe ich nicht verstanden. Sagen Sie bitte a, b, c, d, Publikum oder 50:50.";
 
 
 	private String buildString(String msg, String replacement1, String replacement2) {
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
 	}
 
+	private Map<String, String> readSystemUtterances() {
+		Map<String, String> utterances = new HashMap<String, String>(); 
+		try {
+			for (String line :Files.readAllLines(Paths.get("/src/main/resources/utterances.txt"))){
+				if (line.startsWith("#")){
+					continue;	
+				}
+				String[] parts = line.split("=");
+				String key = parts[0].trim();
+				String utterance = parts[1].trim();
+				utterances.put(key, utterance);
+			}
+		} catch (IOException e) {
+			System.err.println("Could not read utterances: "+e.getMessage());
+		}
+		return utterances;
+	}
 
-
+	static String DBName = "AlexaBeispiel.db";
+	private static Connection con = null;
 
 	@Override
 	public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope)
@@ -97,28 +127,22 @@ implements SpeechletV2
 	public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope)
 	{
 		selectQuestion();
-		return askUserResponse(welcomeMsg+" "+question);
+		return askUserResponse(utterances.get("welcomeMsg")+" "+question);
 	}
-
+	
 	private void selectQuestion() {
-		switch(sum){
-		case 0: question = "Frage?"; correctAnswer = "a"; break;
-		case 50: question = "Frage?"; correctAnswer = "a"; break;
-		case 100: question = "Frage?"; correctAnswer = "a"; break;
-		case 200: question = "Frage?"; correctAnswer = "a"; break;
-		case 300: question = "Frage?"; correctAnswer = "a"; break;
-		case 500: question = "Frage?"; correctAnswer = "a"; break;
-		case 1000: question = "Frage?"; correctAnswer = "a"; break;
-		case 2000: question = "Frage?"; correctAnswer = "a"; break;
-		case 4000: question = "Frage?"; correctAnswer = "a"; break;
-		case 8000: question = "Frage?"; correctAnswer = "a"; break;
-		case 16000: question = "Frage?"; correctAnswer = "a"; break;
-		case 32000: question = "Frage?"; correctAnswer = "a"; break;
-		case 64000: question = "Frage?"; correctAnswer = "a"; break;
-		case 125000: question = "Frage?"; correctAnswer = "a"; break;
-		case 500000: question = "Frage?"; correctAnswer = "a"; break;
+		try {
+			con = DBConnection.getConnection();
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt
+					.executeQuery("SELECT * FROM Fragen WHERE Gewinnsumme=" + sum + "");
+			question = rs.getString("Frage");
+			correctAnswer = rs.getString("RichtigeAntwort");
+		} catch (Exception e){
+			e.printStackTrace();
 		}
 	}
+
 
 	@Override
 	public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope)
@@ -145,9 +169,9 @@ implements SpeechletV2
 			selectQuestion();
 			res = askUserResponse(question); break;
 		} case No: {
-			res = response(buildString(sumMsg, String.valueOf(sum), "")+" "+goodbyeMsg); break;
+			res = response(buildString(utterances.get("sumMsg"), String.valueOf(sum), "")+" "+utterances.get("goodbyeMsg")); break;
 		} default: {
-			res = askUserResponse(errorYesNoMsg);
+			res = askUserResponse(utterances.get(""));
 		}
 		}
 		return res;
@@ -160,20 +184,20 @@ implements SpeechletV2
 		switch (ourUserIntent) {
 		case Publikum: {
 			if (publikumUsed) {
-				res = askUserResponse(publikumUsedMsg);
+				res = askUserResponse(utterances.get("publikumUsedMsg"));
 			} else {
 				publikumUsed = true;
 				usePublikumJoker();
-				res = askUserResponse(buildString(publikumAnswerMsg, answerOption1, answerOption2));
+				res = askUserResponse(buildString(utterances.get("publikumAnswerMsg"), answerOption1, answerOption2));
 			}
 		}; break; 
 		case FiftyFifty: {
 			if (fiftyfiftyUsed) {
-				res = askUserResponse(fiftyfiftyUsedMsg);
+				res = askUserResponse(utterances.get("fiftyfiftyUsedMsg"));
 			} else {
 				fiftyfiftyUsed = true;
 				useFiftyFiftyJoker();
-				res = askUserResponse(buildString(fiftyfiftyAnswerMsg, answerOption1, answerOption2));
+				res = askUserResponse(buildString(utterances.get("fiftyfiftyAnswerMsg"), answerOption1, answerOption2));
 			}
 		}; break; 
 		default :{
@@ -187,17 +211,17 @@ implements SpeechletV2
 					logger.info("User answer recognized as correct.");
 					increaseSum();
 					if (sum == 1000000) {
-						res = response(correctMsg+" "+congratsMsg+" "+goodbyeMsg);
+						res = response(utterances.get("correctMsg")+" "+utterances.get("congratsMsg")+" "+utterances.get("goodbyeMsg"));
 					} else {
 						recState = RecognitionState.YesNo;
-						res = askUserResponse(correctMsg+" "+continueMsg);
+						res = askUserResponse(utterances.get("correctMsg")+" "+utterances.get("continueMsg"));
 					}
 				} else {
 					setfinalSum();
-					res = response(wrongMsg+ " "+ sumMsg + " " +goodbyeMsg);
+					res = response(utterances.get("wrongMsg")+ " "+ utterances.get("sumMsg") + " " + utterances.get("goodbyeMsg"));
 				}
 			} else {
-				res = askUserResponse(errorAnswerMsg);
+				res = askUserResponse(utterances.get("errorAnswerMsg"));
 			}
 		}
 		}
@@ -278,15 +302,38 @@ implements SpeechletV2
 		logger.info("set ourUserIntent to " +ourUserIntent);
 	}
 
-	//TODO
-	private void useFiftyFiftyJoker() {
+
+	void useFiftyFiftyJoker() {
 		answerOption1 = correctAnswer;
-		answerOption2 = correctAnswer;
+		do { int r = (int) Math.round(Math.random()*4.0);
+		switch(r){
+		case 1: answerOption2="a"; break;
+		case 2: answerOption2="b"; break;
+		case 3: answerOption2="c"; break;		
+		default:answerOption2="d";
+		}
+		} while(answerOption2==answerOption1);
+		if (correctAnswer=="d" || answerOption2 == "a"
+				|| (answerOption1 == "c" && answerOption2!="d")) {
+			String temp = answerOption1;
+			answerOption1 = answerOption2;
+			answerOption2 = temp;
+		}
 	}
 
-	//TODO
-	private void usePublikumJoker() {
-		answerOption1 = correctAnswer;
+	void usePublikumJoker() {
+		int r = (int) Math.round(Math.random()*20.0);
+		if (r < 1.0) {
+			answerOption1 = "a";
+		} else if (r < 2.0) {
+			answerOption1 = "b";
+		} else if (r < 3.0) {
+			answerOption1 = "c";
+		} else if (r < 4.0) {
+			answerOption1 = "d";
+		} else {
+			answerOption1 = correctAnswer;
+		}
 	}
 
 	/**
