@@ -87,6 +87,7 @@ implements SpeechletV2
 			}
 			logger.info("Read "  +utterances.keySet().size() + "utterances");
 		} catch (IOException e) {
+			logger.info("Could not read utterances: "+e.getMessage());
 			System.err.println("Could not read utterances: "+e.getMessage());
 		}
 		return utterances;
