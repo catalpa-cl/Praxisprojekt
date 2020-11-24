@@ -70,11 +70,11 @@ implements SpeechletV2
 
 	Map<String, String> utterances;
 
-	private String buildString(String msg, String replacement1, String replacement2) {
+	String buildString(String msg, String replacement1, String replacement2) {
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
 	}
 
-	private Map<String, String> readSystemUtterances() {
+	Map<String, String> readSystemUtterances() {
 		Map<String, String> utterances = new HashMap<String, String>(); 
 		try {
 			for (String line : IOUtils.readLines(this.getClass().getClassLoader().getResourceAsStream("utterances.txt"))){
@@ -207,7 +207,7 @@ implements SpeechletV2
 					}
 				} else {
 					setfinalSum();
-					res = response(utterances.get("wrongMsg")+ " "+ utterances.get("sumMsg") + " " + utterances.get("goodbyeMsg"));
+					res = response(utterances.get("wrongMsg")+ " "+ buildString(utterances.get("sumMsg"), String.valueOf(sum), "")  + " " + utterances.get("goodbyeMsg"));
 				}
 			} else {
 				res = askUserResponse(utterances.get("errorAnswerMsg"));

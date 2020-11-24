@@ -14,8 +14,8 @@ public class DBConnection {
 		try {
 			Class.forName("org.sqlite.JDBC");
 			try {
-				//con = DriverManager.getConnection("jdbc:sqlite:/Users/andrea/git/Praxisprojekt/de.unidue.ltl.ourWWM/src/main/resources/" + DBName);
-				con = DriverManager.getConnection("jdbc:sqlite:src/main/resources/" + DBName);
+				con = DriverManager.getConnection("jdbc:sqlite::resource:" + 
+				           DBConnection.class.getClassLoader().getResource(DBName));
 				} catch (SQLException ex) {
 				System.out.println("Failed to create the database connection.");
 				ex.printStackTrace();
