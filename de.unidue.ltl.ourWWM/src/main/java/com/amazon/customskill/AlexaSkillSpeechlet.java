@@ -76,7 +76,7 @@ implements SpeechletV2
 	private Map<String, String> readSystemUtterances() {
 		Map<String, String> utterances = new HashMap<String, String>(); 
 		try {
-			for (String line :Files.readAllLines(Paths.get("/src/main/resources/utterances.txt"))){
+			for (String line :Files.readAllLines(Paths.get("src/main/resources/utterances.txt"))){
 				if (line.startsWith("#")){
 					continue;	
 				}
