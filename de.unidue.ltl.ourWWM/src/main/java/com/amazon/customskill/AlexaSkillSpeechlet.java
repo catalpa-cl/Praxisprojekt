@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +77,9 @@ implements SpeechletV2
 	private Map<String, String> readSystemUtterances() {
 		Map<String, String> utterances = new HashMap<String, String>(); 
 		try {
-			for (String line :Files.readAllLines(Paths.get("src/main/resources/utterances.txt"))){
-				if (line.startsWith("#")){
+			for (String line : IOUtils.readLines(this.getClass().getClassLoader().getResourceAsStream("utterances.txt"))){
+			//for (String line :Files.readAllLines(Paths.get("src/main/resources/utterances.txt"))){
+						if (line.startsWith("#")){
 					continue;	
 				}
 				String[] parts = line.split("=");
@@ -99,8 +101,8 @@ implements SpeechletV2
 	@Override
 	public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope)
 	{
-		utterances = readSystemUtterances();
 		logger.info("Alexa session begins");
+		utterances = readSystemUtterances();
 		publikumUsed = false;
 		fiftyfiftyUsed = false;
 		sum = 0;
