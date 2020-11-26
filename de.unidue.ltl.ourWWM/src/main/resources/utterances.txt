@@ -10,4 +10,4 @@ fiftyfiftyAnswerMsg = Ok, sie nehmen also den 50 50 Joker. Es bleiben noch die A
 publikumUsedMsg = Sie haben den Publikumsjoker leider schon verbraucht. Wie ist Ihre Antwort?
 publikumAnswerMsg = Ok, sie nehmen also den Publikumsjoker. Das Publikum ist mehrheitlich für Antwort {replacement}.
 errorYesNoMsg = Das habe ich nicht verstanden. Sagen Sie bitte ja oder nein.
-errorAnswerMsg = Das habe ich nicht verstanden. Sagen Sie bitte a, b, c, d, Publikumjoker oder Fiftyfiftyjoker.
+errorAnswerMsg = Das habe ich nicht verstanden. Sagen Sie bitte a, b, c, d, Publikumsjoker oder Fiftyfifty Joker.
