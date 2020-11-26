@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+	<display-name>Archetype Created Web Application</display-name>
+	<servlet>
+		<servlet-name>AlexaServlet</servlet-name>
+		<servlet-class>com.amazon.customskill.AlexaServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AlexaServlet</servlet-name>
+		<url-pattern>/myrequest</url-pattern>
+	</servlet-mapping>
+
+</web-app>
