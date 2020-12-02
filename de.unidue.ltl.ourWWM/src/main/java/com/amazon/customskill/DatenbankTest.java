@@ -1,5 +1,6 @@
 package com.amazon.customskill;
 
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -11,8 +12,10 @@ public class DatenbankTest {
 	private static Statement stmt = null;
 
 
-	public static void main (String[] args) {
+	public static void main (String[] args) throws URISyntaxException {
 
+		System.out.println(Test.class.getClassLoader().getResource("utterances.txt").toURI());
+		
 		try {
 			con = DBConnection.getConnection();
 			stmt = con.createStatement();

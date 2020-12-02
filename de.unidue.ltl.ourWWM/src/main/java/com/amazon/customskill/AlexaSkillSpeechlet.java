@@ -251,6 +251,7 @@ implements SpeechletV2
 	}
 
 
+	// Achtung, Reihenfolge ist wichtig!
 	void recognizeUserIntent(String userRequest) {
 		userRequest = userRequest.toLowerCase();
 		String pattern1 = "(ich nehme )?(antwort )?(\\b[a-d]\\b)( bitte)?";
