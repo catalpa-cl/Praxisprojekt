@@ -14,7 +14,7 @@ public class DatenbankTest {
 
 	public static void main (String[] args) throws URISyntaxException {
 
-		System.out.println(Test.class.getClassLoader().getResource("utterances.txt").toURI());
+		System.out.println(DatenbankTest.class.getClassLoader().getResource("utterances.txt").toURI());
 		
 		try {
 			con = DBConnection.getConnection();

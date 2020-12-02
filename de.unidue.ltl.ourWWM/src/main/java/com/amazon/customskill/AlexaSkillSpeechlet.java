@@ -52,10 +52,10 @@ import com.amazon.speech.ui.SsmlOutputSpeech;
 public class AlexaSkillSpeechlet
 implements SpeechletV2
 {
+	// Initialisiert den Logger. Am besten möglichst of Logmeldungen erstellen, hilft hinterher bei der Fehlersuche!
 	static Logger logger = LoggerFactory.getLogger(AlexaSkillSpeechlet.class);
 
-	public static String userRequest;
-
+	// Variablen, die wir auch schon in DialogOS hatten
 	static int sum;
 	static String answerOption1 = "";
 	static String answerOption2 = "";
@@ -63,23 +63,32 @@ implements SpeechletV2
 	static boolean fiftyfiftyUsed;
 	static String question = "";
 	static String correctAnswer = "";
+
+	// Was der User gesagt hat
+	public static String userRequest;
+
+	// In welchem Spracherkennerknoten sind wir?
 	static enum RecognitionState {Answer, YesNo};
 	RecognitionState recState;
+
+	// Was hat der User grade gesagt. (Die "Semantic Tags"aus DialogOS)
 	static enum UserIntent {Yes, No, A, B, C, D, Publikum, FiftyFifty, Error};
 	UserIntent ourUserIntent;
 
+	// Was das System sagen kann
 	Map<String, String> utterances;
 
+	// Baut die Systemäußerung zusammen
 	String buildString(String msg, String replacement1, String replacement2) {
 		return msg.replace("{replacement}", replacement1).replace("{replacement2}", replacement2);
 	}
 
+	// Liest am Anfang alle Systemäußerungen aus Datei ein
 	Map<String, String> readSystemUtterances() {
 		Map<String, String> utterances = new HashMap<String, String>(); 
 		try {
 			for (String line : IOUtils.readLines(this.getClass().getClassLoader().getResourceAsStream("utterances.txt"))){
-			//for (String line :Files.readAllLines(Paths.get("src/main/resources/utterances.txt"))){
-						if (line.startsWith("#")){
+				if (line.startsWith("#")){
 					continue;	
 				}
 				String[] parts = line.split("=");
@@ -95,9 +104,14 @@ implements SpeechletV2
 		return utterances;
 	}
 
+	// Datenbank für Quizfragen
 	static String DBName = "AlexaBeispiel.db";
 	private static Connection con = null;
 
+
+	// Vorgegebene Methode wird am Anfang einmal ausgeführt, wenn ein neuer Dialog startet:
+	// * lies Nutzeräußerungen ein
+	// * Initialisiere Variablen
 	@Override
 	public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope)
 	{
@@ -106,18 +120,22 @@ implements SpeechletV2
 		publikumUsed = false;
 		fiftyfiftyUsed = false;
 		sum = 0;
-		recState = RecognitionState.Answer;
-
 	}
 
+	// Wir starten den Dialog:
+	// * Hole die erste Frage aus der Datenbank
+	// * Lies die Welcome-Message vor, dann die Frage
+	// * Dann wollen wir eine Antwort erkennen
 	@Override
 	public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope)
 	{
 		logger.info("onLaunch");
 		selectQuestion();
+		recState = RecognitionState.Answer;
 		return askUserResponse(utterances.get("welcomeMsg")+" "+question);
 	}
-	
+
+	// Ziehe eine Frage aus der Datenbank, abhängig von der aktuellen Gewinnsumme, setze question und correctAnswer
 	private void selectQuestion() {
 		try {
 			con = DBConnection.getConnection();
@@ -133,6 +151,8 @@ implements SpeechletV2
 	}
 
 
+	// Hier gehen wir rein, wenn der User etwas gesagt hat
+	// Wir speichern den String in userRequest, je nach recognition State reagiert das System unterschiedlich
 	@Override
 	public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope)
 	{
@@ -145,11 +165,14 @@ implements SpeechletV2
 		switch (recState) {
 		case Answer: resp = evaluateAnswer(userRequest); break;
 		case YesNo: resp = evaluateYesNo(userRequest); recState = RecognitionState.Answer; break;
-		default: resp = response("Erkannter Text: " + userRequest);
+		default: resp = tellUserAndFinish("Erkannter Text: " + userRequest);
 		}   
 		return resp;
 	}
 
+	// Ja/Nein-Fragen kommen genau dann vor, wenn wir wissen wollen, ob der User weitermachen will.
+	// Wenn Ja, stelle die nächste Frage
+	// Wenn Nein, nenne die Gewinnsumme und verabschiede den user
 	private SpeechletResponse evaluateYesNo(String userRequest) {
 		SpeechletResponse res = null;
 		recognizeUserIntent(userRequest);
@@ -158,7 +181,7 @@ implements SpeechletV2
 			selectQuestion();
 			res = askUserResponse(question); break;
 		} case No: {
-			res = response(buildString(utterances.get("sumMsg"), String.valueOf(sum), "")+" "+utterances.get("goodbyeMsg")); break;
+			res = tellUserAndFinish(buildString(utterances.get("sumMsg"), String.valueOf(sum), "")+" "+utterances.get("goodbyeMsg")); break;
 		} default: {
 			res = askUserResponse(utterances.get(""));
 		}
@@ -200,14 +223,14 @@ implements SpeechletV2
 					logger.info("User answer recognized as correct.");
 					increaseSum();
 					if (sum == 1000000) {
-						res = response(utterances.get("correctMsg")+" "+utterances.get("congratsMsg")+" "+utterances.get("goodbyeMsg"));
+						res = tellUserAndFinish(utterances.get("correctMsg")+" "+utterances.get("congratsMsg")+" "+utterances.get("goodbyeMsg"));
 					} else {
 						recState = RecognitionState.YesNo;
 						res = askUserResponse(utterances.get("correctMsg")+" "+utterances.get("continueMsg"));
 					}
 				} else {
 					setfinalSum();
-					res = response(utterances.get("wrongMsg")+ " "+ buildString(utterances.get("sumMsg"), String.valueOf(sum), "")  + " " + utterances.get("goodbyeMsg"));
+					res = tellUserAndFinish(utterances.get("wrongMsg")+ " "+ buildString(utterances.get("sumMsg"), String.valueOf(sum), "")  + " " + utterances.get("goodbyeMsg"));
 				}
 			} else {
 				res = askUserResponse(utterances.get("errorAnswerMsg"));
@@ -326,41 +349,7 @@ implements SpeechletV2
 		}
 	}
 
-	/**
-	 * formats the text in weird ways
-	 * @param text
-	 * @param i
-	 * @return
-	 */
-	private SpeechletResponse responseWithFlavour(String text, int i) {
 
-		SsmlOutputSpeech speech = new SsmlOutputSpeech();
-		switch(i){ 
-		case 0: 
-			speech.setSsml("<speak><amazon:effect name=\"whispered\">" + text + "</amazon:effect></speak>");
-			break; 
-		case 1: 
-			speech.setSsml("<speak><emphasis level=\"strong\">" + text + "</emphasis></speak>");
-			break; 
-		case 2: 
-			String half1=text.split(" ")[0];
-			String[] rest = Arrays.copyOfRange(text.split(" "), 1, text.split(" ").length);
-			speech.setSsml("<speak>"+half1+"<break time=\"3s\"/>"+ StringUtils.join(rest," ") + "</speak>");
-			break; 
-		case 3: 
-			String firstNoun="erstes Wort buchstabiert";
-			String firstN=text.split(" ")[3];
-			speech.setSsml("<speak>"+firstNoun+ "<say-as interpret-as=\"spell-out\">"+firstN+"</say-as>"+"</speak>");
-			break; 
-		case 4: 
-			speech.setSsml("<speak><audio src='soundbank://soundlibrary/transportation/amzn_sfx_airplane_takeoff_whoosh_01'/></speak>");
-			break;
-		default: 
-			speech.setSsml("<speak><amazon:effect name=\"whispered\">" + text + "</amazon:effect></speak>");
-		} 
-
-		return SpeechletResponse.newTellResponse(speech);
-	}
 
 
 	@Override
@@ -374,7 +363,7 @@ implements SpeechletV2
 	/**
 	 * Tell the user something - the Alexa session ends after a 'tell'
 	 */
-	private SpeechletResponse response(String text)
+	private SpeechletResponse tellUserAndFinish(String text)
 	{
 		// Create the plain text output.
 		PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
@@ -400,9 +389,39 @@ implements SpeechletV2
 
 		Reprompt rep = new Reprompt();
 		rep.setOutputSpeech(repromptSpeech);
-
 		return SpeechletResponse.newAskResponse(speech, rep);
 	}
 
+
+	/**
+	 * formats the text in weird ways
+	 * @param text
+	 * @param i
+	 * @return
+	 */
+	private SpeechletResponse responseWithFlavour(String text, int i) {
+
+		SsmlOutputSpeech speech = new SsmlOutputSpeech();
+		switch(i){ 
+		case 0: 
+			speech.setSsml("<speak><amazon:effect name=\"whispered\">" + text + "</amazon:effect></speak>");
+			break; 
+		case 1: 
+			speech.setSsml("<speak><emphasis level=\"strong\">" + text + "</emphasis></speak>");
+			break; 
+		case 2: 
+			String firstNoun="erstes Wort buchstabiert";
+			String firstN=text.split(" ")[3];
+			speech.setSsml("<speak>"+firstNoun+ "<say-as interpret-as=\"spell-out\">"+firstN+"</say-as>"+"</speak>");
+			break; 
+		case 3: 
+			speech.setSsml("<speak><audio src='soundbank://soundlibrary/transportation/amzn_sfx_airplane_takeoff_whoosh_01'/></speak>");
+			break;
+		default: 
+			speech.setSsml("<speak><amazon:effect name=\"whispered\">" + text + "</amazon:effect></speak>");
+		} 
+
+		return SpeechletResponse.newTellResponse(speech);
+	}
 
 }
