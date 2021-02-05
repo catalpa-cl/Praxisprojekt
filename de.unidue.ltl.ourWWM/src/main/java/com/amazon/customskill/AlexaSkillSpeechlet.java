@@ -15,7 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,8 +132,10 @@ implements SpeechletV2
 	public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope)
 	{
 		logger.info("onLaunch");
-		selectQuestion();
+		
 		recState = RecognitionState.Answer;
+		selectQuestion();
+	
 		return askUserResponse(utterances.get("welcomeMsg")+" "+question);
 	}
 
@@ -145,6 +149,7 @@ implements SpeechletV2
 			question = rs.getString("Frage");
 			correctAnswer = rs.getString("RichtigeAntwort");
 			logger.info("Extracted question from database "+ question);
+			con.close();
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -355,6 +360,12 @@ implements SpeechletV2
 	@Override
 	public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope)
 	{
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		logger.info("Alexa session ends now");
 	}
 
